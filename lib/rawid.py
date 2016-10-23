@@ -40,7 +40,7 @@ df_raw_types = {
     'TISSUE_TEMPLATE' : {'TISSUE_TEMPLATE'},
 }
 
-class Robject(object):
+class Robject(dict):
     def __init__(self, content, ns = None, verbosity = 0):
         self.namespace = ns
         comment, token, tokname, tags = content[0]
@@ -61,19 +61,19 @@ class Robject(object):
         self._comments = []
         self._tokens = []
         self.tags = []   
-        tags_i = {}
+        self.tagd = {}
         i = 0
         for comment, token, tokname, tags in content[1:]:
             self._comments.append(comment)
             if token:
                 self._tokens.append(token)
-                self.tags.append((tokname, tags))
-                if tokname in tags_i:
-                    tags_i[tokname].append(i)
+                self.tags.append([tokname if j < 1 else tags[j-1]
+                                  for j in range(len(tags)+1)])
+                if tokname in self.tagd:
+                    self.tagd[tokname].append(i)
                 else:
-                    tags_i[tokname] = [i]
+                    self.tagd[tokname] = [i]
             i += 1
-        self.tag_idx = {k : tuple(tags_i[k]) for k in tags_i}
 
 class Rnamespace(object):
     def __init__(self, tup, verbosity = 0):
