@@ -40,7 +40,7 @@ df_raw_types = {
     'TISSUE_TEMPLATE' : {'TISSUE_TEMPLATE'},
 }
 
-class Robject(dict):
+class Robject(object):
     def __init__(self, content, ns = None, verbosity = 0):
         self.namespace = ns
         comment, token, tokname, tags = content[0]
@@ -74,6 +74,20 @@ class Robject(dict):
                 else:
                     self.tagd[tokname] = [i]
             i += 1
+
+    def __getitem__(self, k):
+        if isinstance(k, int):
+            return self.tags[k]
+        elif isinstance(k, str):
+            return tuple(self.tags[i] for i in self.tagd[k])
+        else:
+            raise ValueError('key must be int or str, got {:s}'.format(repr(k)))
+
+    def __contains__(self, k):
+        if isinstance(k, str):
+            return k in self.tagd
+        else:
+            raise ValueError('key msy be str, got {:s}'.format(repr(k)))
 
 class Rnamespace(object):
     def __init__(self, tup, verbosity = 0):
