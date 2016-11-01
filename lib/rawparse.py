@@ -179,12 +179,15 @@ def writeraw(fpath, tup, verbosity = 0):
         f.write(encoderaw(tup))
 
     if verbosity >= 1:
-        print('wrote {:s}, {:s}, {:d} tokens'
-              .format(fname, '[OBJECT:'+objt+']', len(content)))
+        print('wrote {:s}, {:s}'
+              .format(fname, '[OBJECT:'+objt+']'))
 
 
 if __name__ == '__main__':
     import sys
+    if len(sys.argv) < 2:
+        print('Usage: {:s} <RAWFILE>'.format(os.path.basename(__file__)))
+        exit(1)
     fpath = sys.argv[1]
 
     # test parse / unparse
