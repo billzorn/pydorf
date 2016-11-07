@@ -8,7 +8,8 @@ sys.path.append(libdir)
 import rawparse
 import rawid
 
-rawdir = os.path.join(libdir, '../../vanilla/raw/objects/')
+#rawdir = os.path.join(libdir, '../../vanilla/raw/objects/')
+rawdir = os.path.join(libdir, '../../dorfraw/raw/objects/')
 ridx = rawid.Rindex(rawroot=rawdir, verbosity=0, strict=True)
 
 # useful things

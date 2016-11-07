@@ -1,6 +1,7 @@
 # dwarf fortress raw indexer
 
 import os
+import traceback
 
 # It turns out saving / loading the index object as YAML is 10x slower
 # than just parsing all the files...
@@ -328,11 +329,58 @@ class Rindex(object):
                 self.objects.append(robj)
 
         self._mangle_names()
+        self._setup_creature_subindex()
 
         if self.verbosity >= 1:
             print('created index of raws at {:s}'.format(rawroot))
             print('  {:d} namespaces, {:d} typed indices, {:d} objects'
                   .format(len(self.namespaces), len(self._robj_master), len(self.objects)))
+
+    def _setup_creature_subindex(self):
+        self.creature_B = {}
+        self.creature_G = {}
+        self.creature_M = {}
+        self.cv_G = {}
+        self.cv_M = {}
+
+        for ident in self.creature:
+            robj = self.creature[ident]
+            if 'APPLY_CREATURE_VARIATION' in robj:
+                cv_toks = robj['APPLY_CREATURE_VARIATION']
+                if (has_tag(cv_toks, 'GIANT')
+                    or has_tag(cv_toks, 'ANIMAL_PERSON') or has_tag(cv_toks, 'ANIMAL_PERSON_LEGLESS')):
+                    try:
+                        cp_toks = robj['COPY_TAGS_FROM']
+                        assert len(cp_toks) == 1
+                        assert len(cp_toks[0]) == 2
+                        parent_ident = cp_toks[0][1]
+                    except Exception as e:
+                        print('WARNING: creature variation {:s} has invalid parent'
+                              .format(repr(ident)))
+                        if self.strict:
+                            raise e
+                        else:
+                            traceback.print_exc()
+                        parent_ident = None
+
+                    if has_tag(cv_toks, 'GIANT'):
+                        self.creature_G[ident] = robj
+                        if parent_ident is not None:
+                            self.cv_G[parent_ident] = ident
+                    if has_tag(cv_toks, 'ANIMAL_PERSON') or has_tag(cv_toks, 'ANIMAL_PERSON_LEGLESS'):
+                        self.creature_M[ident] = robj
+                        if parent_ident is not None:
+                            self.cv_M[parent_ident] = ident
+                    else:
+                        if self.verbosity >= 1:
+                            print('misc variation {:s}'.format(repr(ident)))
+                else:
+                    self.creature_B[ident] = robj
+            else:
+                if self.verbosity >= 1:
+                    print('creature {:s} appears not to have gait variations'
+                          .format(repr(ident)))
+                self.creature_B[ident] = robj
 
     def todir(self, fpath):
         if not fpath.endswith(os.sep):
@@ -345,6 +393,9 @@ class Rindex(object):
             return
         for ns in self.namespaces:
             ns.tofile(fpath, verbosity=self.verbosity)
+
+def has_tag(tokens, tag):
+    return any(tag in tok for tok in tokens)
 
 # def save_ridx(ridx, fname):
 #     with open(fname, 'wt') as f:
