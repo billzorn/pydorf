@@ -14,6 +14,45 @@ ridx = rawid.Rindex(rawroot=rawdir, verbosity=0, strict=True)
 
 # useful things
 
+def find_tag(tag, search_args=False, p=True, r=False):
+    if r:
+        results = []
+    for ns in ridx.namespaces:
+        for ro in ns:
+            if search_args:
+                if any(tag in tags for tags in ro):
+                    if p:
+                        print(ns.name, ro.ident)
+                    if r:
+                        results.append(ro)
+            else:
+                if tag in ro:
+                    if p:
+                        print(ns.name, ro.ident)
+                    if r:
+                        results.append(ro)
+    if r:
+        return results
+
+def get_tag(tag, search_args=False):
+    return find_tag(tag, search_args=search_args, p=False, r=True)
+
+def filter_tag(ros, tag, search_args=False):
+    new_ros = []
+    for ro in ros:
+        if search_args:
+            if any(tag in tags for tags in ro):
+                new_ros.append(ro)
+        else:
+            if tag in ro:
+                new_ros.append(ro)
+    return new_ros
+
+def print_ros(ros):
+    for ro in ros:
+        print(ro.namespace.name, ro.ident)
+
+# repair passes
 
 nonident_re = re.compile(r'[^A-Z0-9_-]')
 
